@@ -28,7 +28,7 @@ export default function Dashboard() {
 
   const fetchStudents = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/students', axiosConfig);
+      const res = await axios.get('https://school-management-app-bn8r.onrender.com/students', axiosConfig);
       setStudents(res.data);
     } catch (err) {
       if (err.response?.status === 401) handleLogout();
@@ -54,10 +54,10 @@ export default function Dashboard() {
 
     try {
       if (editId) {
-        await axios.put(`http://localhost:5000/students/${editId}`, form, axiosConfig);
+        await axios.put(`https://school-management-app-bn8r.onrender.com/students/${editId}`, form, axiosConfig);
         setEditId(null);
       } else {
-        await axios.post('http://localhost:5000/students', form, axiosConfig);
+        await axios.post('https://school-management-app-bn8r.onrender.com/students', form, axiosConfig);
       }
       setForm({ name: '', age: '', rollNumber: '', address: '', city: '', state: '', pincode: '' });
       fetchStudents();
@@ -73,7 +73,7 @@ export default function Dashboard() {
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this student?")) {
-      await axios.delete(`http://localhost:5000/students/${id}`, axiosConfig);
+      await axios.delete(`https://school-management-app-bn8r.onrender.com/students/${id}`, axiosConfig);
       fetchStudents();
       if (editId === id) {
         setForm({ name: '', age: '', rollNumber: '', address: '', city: '', state: '', pincode: '' });

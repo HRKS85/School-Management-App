@@ -13,17 +13,17 @@ export default function AuthPage() {
     e.preventDefault();
     try {
       if (mode === 'register') {
-        const res = await axios.post('http://localhost:5000/register', formData);
+        const res = await axios.post('https://school-management-app-bn8r.onrender.com/register', formData);
         localStorage.setItem('user', JSON.stringify(res.data.user));
         localStorage.setItem('token', res.data.token);
         navigate('/dashboard');
       } else if (mode === 'login') {
-        const res = await axios.post('http://localhost:5000/login', { email: formData.email, password: formData.password });
+        const res = await axios.post('https://school-management-app-bn8r.onrender.com/login', { email: formData.email, password: formData.password });
         localStorage.setItem('user', JSON.stringify(res.data.user));
         localStorage.setItem('token', res.data.token);
         navigate('/dashboard');
       } else if (mode === 'reset') {
-        await axios.post('http://localhost:5000/reset-password', { email: formData.email, newPassword: formData.password });
+        await axios.post('https://school-management-app-bn8r.onrender.com/reset-password', { email: formData.email, newPassword: formData.password });
         alert("Password reset! You can now log in.");
         setMode('login');
       }
