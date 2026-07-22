@@ -33,24 +33,88 @@ export default function AuthPage() {
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '400px', margin: '100px auto' }}>
-      <h2>{mode === 'login' ? 'Login' : mode === 'register' ? 'Register' : 'Reset Password'}</h2>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        {mode === 'register' && <input type="text" name="name" placeholder="Full Name" required onChange={handleChange} />}
-        <input type="email" name="email" placeholder="Email" required onChange={handleChange} />
-        <input type="password" name="password" placeholder={mode === 'reset' ? "New Password" : "Password"} required minLength="6" onChange={handleChange} />
-        <button type="submit">{mode === 'login' ? 'Login' : mode === 'register' ? 'Register' : 'Update Password'}</button>
-      </form>
-      <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px', textAlign: 'center' }}>
-        {mode === 'login' && (
-          <>
-            <a href="#" onClick={(e) => { e.preventDefault(); setMode('register'); }}>Not registered? Create an account</a>
-            <a href="#" onClick={(e) => { e.preventDefault(); setMode('reset'); }}>Forgot Password?</a>
-          </>
-        )}
-        {(mode === 'register' || mode === 'reset') && (
-          <a href="#" onClick={(e) => { e.preventDefault(); setMode('login'); }}>Back to Login</a>
-        )}
+    <div className="auth-page-bg">
+      <div className="auth-mobile-card">
+        
+        {/* Abstract Blob Header */}
+        <div className="auth-header-visuals">
+          <div className="blob-yellow"></div>
+          <div className="blob-salmon"></div>
+          <div className="blob-purple">
+            <h2 className="auth-title">
+              {mode === 'login' && <>Welcome<br/>Back</>}
+              {mode === 'register' && <>Create<br/>Account</>}
+              {mode === 'reset' && <>Reset<br/>Password</>}
+            </h2>
+          </div>
+        </div>
+
+        {/* Minimal Form Section */}
+        <div className="auth-form-container">
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
+            
+            {mode === 'register' && (
+              <div className="minimal-input-group">
+                <label className="minimal-label">Name</label>
+                <input 
+                  type="text" 
+                  name="name" 
+                  required 
+                  onChange={handleChange} 
+                  className="minimal-input" 
+                  placeholder="John Doe" 
+                />
+              </div>
+            )}
+            
+            <div className="minimal-input-group">
+              <label className="minimal-label">Email</label>
+              <input 
+                type="email" 
+                name="email" 
+                required 
+                onChange={handleChange} 
+                className="minimal-input" 
+                placeholder="giga@example.com" 
+              />
+            </div>
+            
+            <div className="minimal-input-group">
+              <label className="minimal-label">Password</label>
+              <input 
+                type="password" 
+                name="password" 
+                required 
+                minLength="6" 
+                onChange={handleChange} 
+                className="minimal-input" 
+                placeholder="•••••••" 
+              />
+            </div>
+
+            <div className="auth-action-row">
+              <span className="auth-action-text">
+                {mode === 'login' ? 'Sign in' : mode === 'register' ? 'Sign up' : 'Update'}
+              </span>
+              <button type="submit" className="auth-circle-btn">
+                →
+              </button>
+            </div>
+          </form>
+
+          {/* Footer Links */}
+          <div className="auth-footer">
+            {mode === 'login' ? (
+              <>
+                <button onClick={() => setMode('register')} className="minimal-link">Sign up</button>
+                <button onClick={() => setMode('reset')} className="minimal-link">Forgot Password</button>
+              </>
+            ) : (
+              <button onClick={() => setMode('login')} className="minimal-link">Back to Sign in</button>
+            )}
+          </div>
+        </div>
+
       </div>
     </div>
   );

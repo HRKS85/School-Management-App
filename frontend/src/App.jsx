@@ -2,16 +2,25 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import AuthPage from './AuthPage';
 import Dashboard from './Dashboard';
 
-function App() {
-  const isAuthenticated = !!localStorage.getItem('token');
 
+const ProtectedRoute = ({ children }) => {
+  const isAuthenticated = !!localStorage.getItem('token');
+  return isAuthenticated ? children : <Navigate to="/" />;
+};
+
+function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<AuthPage />} />
+        
         <Route 
           path="/dashboard" 
-          element={isAuthenticated ? <Dashboard /> : <Navigate to="/" />} 
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } 
         />
       </Routes>
     </Router>

@@ -9,9 +9,18 @@ export default function Dashboard() {
   const user = userRaw ? JSON.parse(userRaw) : null;
   
   const [students, setStudents] = useState([]);
+  
   const [form, setForm] = useState({
-    name: '', age: '', rollNumber: '', address: '', city: '', state: '', pincode: ''
+    name: user?.name || '', 
+    age: '', 
+    rollNumber: '', 
+    address: '', 
+    city: '', 
+    state: '', 
+    pincode: ''
   });
+  
+  const [errors, setErrors] = useState({});
   const [editId, setEditId] = useState(null);
 
   const axiosConfig = useMemo(() => ({
@@ -36,20 +45,35 @@ export default function Dashboard() {
   };
 
   const handleChange = (e) => {
-    if (e.target.name === 'pincode') {
-      const numericValue = e.target.value.replace(/\D/g, '').slice(0, 6);
-      setForm({ ...form, pincode: numericValue });
-    } else {
-      setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setErrors((prev) => ({ ...prev, [name]: '' }));
+
+    if (['age', 'rollNumber', 'pincode'].includes(name)) {
+      if (!/^\d*$/.test(value)) return; 
     }
+    if (['city', 'state', 'name'].includes(name)) {
+      if (!/^[a-zA-Z\s]*$/.test(value)) return; 
+    }
+    if (name === 'pincode' && value.length > 6) return;
+
+    setForm({ ...form, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (form.pincode.length !== 6) {
-      alert("Pincode must be exactly 6 digits.");
-      return;
+    const newErrors = {};
+    if (!form.name.trim()) newErrors.name = "Required";
+    if (!form.age) newErrors.age = "Required";
+    if (!form.rollNumber.trim()) newErrors.rollNumber = "Required";
+    if (!form.address.trim()) newErrors.address = "Required";
+    if (!form.city.trim()) newErrors.city = "Required";
+    if (!form.state.trim()) newErrors.state = "Required";
+    if (!form.pincode || form.pincode.length !== 6) newErrors.pincode = "6 digits Required";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return; 
     }
 
     try {
@@ -59,7 +83,9 @@ export default function Dashboard() {
       } else {
         await axios.post('https://school-management-app-bn8r.onrender.com/students', form, axiosConfig);
       }
-      setForm({ name: '', age: '', rollNumber: '', address: '', city: '', state: '', pincode: '' });
+      
+      setForm({ name: user?.name || '', age: '', rollNumber: '', address: '', city: '', state: '', pincode: '' });
+      setErrors({});
       fetchStudents();
     } catch (err) {
       console.error(err);
@@ -69,6 +95,7 @@ export default function Dashboard() {
   const handleEdit = (student) => {
     setForm({ ...student });
     setEditId(student._id);
+    setErrors({});
   };
 
   const handleDelete = async (id) => {
@@ -76,8 +103,9 @@ export default function Dashboard() {
       await axios.delete(`https://school-management-app-bn8r.onrender.com/students/${id}`, axiosConfig);
       fetchStudents();
       if (editId === id) {
-        setForm({ name: '', age: '', rollNumber: '', address: '', city: '', state: '', pincode: '' });
+        setForm({ name: user?.name || '', age: '', rollNumber: '', address: '', city: '', state: '', pincode: '' });
         setEditId(null);
+        setErrors({});
       }
     }
   };
@@ -88,64 +116,108 @@ export default function Dashboard() {
     navigate('/');
   };
 
+  const renderInput = (name, labelText, type = "text") => (
+    <div className="input-group">
+      <div className="input-label-row">
+        <label htmlFor={name} className="label-text">
+          <span className="asterisk">*</span>
+          {labelText}
+        </label>
+        {errors[name] && <span className="error-text">{errors[name]}</span>}
+      </div>
+      <input
+        id={name}
+        name={name}
+        type={type}
+        value={form[name]}
+        onChange={handleChange}
+        className={`input-field ${errors[name] ? 'error' : ''}`}
+      />
+    </div>
+  );
+
   if (!user) return null;
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1000px', margin: 'auto' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f4f4f9', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#007bff', color: 'white', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold' }}>
-            {user.email.charAt(0).toUpperCase()}
+    <div className="dashboard-container">
+      <div className="dashboard-content">
+        
+        <header className="card header-card">
+          <div className="avatar-wrapper">
+            <div className="avatar">
+              {user.name ? user.name.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+            </div>
+            <div className="user-info">
+              <p className="user-name">{user.name || "Administrator"}</p>
+              <p className="user-email">{user.email}</p>
+            </div>
           </div>
-          <span style={{ fontWeight: 'bold' }}>{user.email}</span>
+          <button onClick={handleLogout} className="btn btn-danger">Logout</button>
+        </header>
+
+        <div className="card">
+          <h2>Student Registration</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="form-grid">
+              {renderInput("name", "Student Name")}
+              {renderInput("age", "Age")}
+              {renderInput("rollNumber", "Roll Number")}
+              {renderInput("address", "Address")}
+              {renderInput("city", "City")}
+              {renderInput("state", "State")}
+              {renderInput("pincode", "Pincode")}
+            </div>
+            
+            <div style={{ marginTop: '10px' }}>
+              <button type="submit" className={`btn ${editId ? 'btn-warning' : 'btn-success'}`}>
+                {editId ? 'Update Student Record' : 'Save Student Record'}
+              </button>
+            </div>
+          </form>
         </div>
-        <button onClick={handleLogout} style={{ background: '#dc3545', padding: '8px 16px' }}>Logout</button>
-      </header>
 
-      <h2>Student Registration Form</h2>
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '30px' }}>
-        <input name="name" value={form.name} onChange={handleChange} placeholder="Full Name" required />
-        <input name="age" type="number" value={form.age} onChange={handleChange} placeholder="Age" required />
-        <input name="rollNumber" value={form.rollNumber} onChange={handleChange} placeholder="Roll Number" required />
-        <input name="address" value={form.address} onChange={handleChange} placeholder="Address" required />
-        <input name="city" value={form.city} onChange={handleChange} placeholder="City" required />
-        <input name="state" value={form.state} onChange={handleChange} placeholder="State" required />
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Roll No</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Pincode</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((s) => (
+                <tr key={s._id}>
+                  <td>{s.name}</td>
+                  <td>{s.age}</td>
+                  <td>{s.rollNumber}</td>
+                  <td>{s.address}</td>
+                  <td>{s.city}</td>
+                  <td>{s.state}</td>
+                  <td>{s.pincode}</td>
+                  <td className="actions-cell">
+                    <button onClick={() => handleEdit(s)} className="btn-action-edit">Edit</button>
+                    <button onClick={() => handleDelete(s._id)} className="btn-action-delete">Delete</button>
+                  </td>
+                </tr>
+              ))}
+              {students.length === 0 && (
+                <tr>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                    No students found in the database.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
         
-        <input 
-          name="pincode" 
-          value={form.pincode} 
-          onChange={handleChange} 
-          placeholder="Pincode (6 Digits)" 
-          pattern="\d{6}" 
-          title="Please enter exactly 6 digits"
-          required 
-        />
-        
-        <button type="submit" style={{ gridColumn: 'span 2', background: editId ? '#f59e0b' : '#10b981' }}>
-          {editId ? 'Update Student' : 'Add Student'}
-        </button>
-      </form>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th><th>Age</th><th>Roll No</th><th>Address</th><th>City</th><th>State</th><th>Pincode</th><th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {students.map((s) => (
-            <tr key={s._id}>
-              <td>{s.name}</td><td>{s.age}</td><td>{s.rollNumber}</td>
-              <td>{s.address}</td><td>{s.city}</td><td>{s.state}</td><td>{s.pincode}</td>
-              <td>
-                <button onClick={() => handleEdit(s)}>Edit</button>
-                <button onClick={() => handleDelete(s._id)}>Delete</button>
-              </td>
-            </tr>
-          ))}
-          {students.length === 0 && <tr><td colSpan="8" style={{ textAlign: 'center' }}>No students found.</td></tr>}
-        </tbody>
-      </table>
+      </div>
     </div>
   );
 }
